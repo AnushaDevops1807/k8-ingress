@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: expense
+  # labels of deployment resource
+  labels:
+    app: frontend
+    tier: web
+    project: expense
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+      tier: web
+      project: expense
+  template:
+    metadata:
+      labels:
+        app: frontend
+        tier: web
+        project: expense
+    spec:
+      containers:
+      - name: nginx
+        image: anusha080/frontend:1.2.0
+        ports:
+        - containerPort: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend1
+  annotations:
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS": 443}]'
+    alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:203918863001:certificate/dcc95227-7e32-4280-b1c7-68e6b8a52279
+    alb.ingress.kubernetes.io/group.name: joindevops
+spec:
+  ingressClassName: alb
+  rules:
+  - host: "frontend1.anudevops.online"
+    http:
+      paths:
+      - pathType: Prefix
+        path: "/"
+        backend:
+          service:
+            name: frontend1
+            port:
+              number: 80
